@@ -52,8 +52,10 @@ Then it ranks results by latency.
 
 ## 📦 Installation
 
+
+# 🐧 Linux (Ubuntu / Debian)
 ```bash
-apt update && apt upgrade -y
+sudo apt update && sudo apt upgrade -y
 ```
 
 ```bash
@@ -65,7 +67,7 @@ sudo apt install git -y
 ```
 
 ```bash
-git clone https://github.com/AKPACKAGE/ipchecker.git  
+git clone https://github.com/AKPACKAGE/ipchecker.git
 ```
 
 ```bash
@@ -73,11 +75,43 @@ cd ipchecker
 ```
 
 ```bash
-pip install request
+pip3 install requests
 ```
 
 ```bash
-pip install -r requirements.txt  
+pip3 install -r requirements.txt
+```
+
+---
+
+## 📱 Termux (Android)
+
+```bash
+pkg update && pkg upgrade -y
+```
+
+```bash
+pkg install python -y
+```
+
+```bash
+pkg install git -y
+```
+
+```bash
+git clone https://github.com/AKPACKAGE/ipchecker.git
+```
+
+```bash
+cd ipchecker
+```
+
+```bash
+pip install requests
+```
+
+```bash
+pip install -r requirements.txt
 ```
 
 ---
