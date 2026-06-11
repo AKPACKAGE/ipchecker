@@ -1,5 +1,5 @@
 import requests
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import os
 import sys
@@ -23,8 +23,6 @@ ips = [
 ]
 
 def startup_animation():
-    import sys, time
-
     steps = [
         "booting core system",
         "loading encryption layer",
@@ -41,26 +39,14 @@ def startup_animation():
             empty = "░" * (bar_len - i)
             percent = int((i / bar_len) * 100)
 
-            sys.stdout.write(
-                f"\r{step} [{filled}{empty}] {percent}%"
-            )
+            sys.stdout.write(f"\r{step} [{filled}{empty}] {percent}%")
             sys.stdout.flush()
             time.sleep(0.03)
 
         print(" ✔")
         time.sleep(0.15)
 
-    print("\n")
-    text = "SYSTEM READY"
-    for i in range(3):
-        sys.stdout.write("\r" + " " * 20)
-        sys.stdout.flush()
-        time.sleep(0.1)
-        sys.stdout.write("\r" + text)
-        sys.stdout.flush()
-        time.sleep(0.2)
-
-    print("\n\n")
+    print("\nSYSTEM READY\n")
     time.sleep(0.3)
 
 def banner():
@@ -140,21 +126,6 @@ def get_ip_list():
 
     return []
 
-def print_table(results):
-    results.sort(key=lambda x: x[1])
-
-    print(C.C + "\n━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print(" RANK | STATUS | PING | IP")
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━" + C.W)
-
-    rank = 1
-    for ip, lat, status in results:
-        icon = "🟢" if status == "OK" else "🔴"
-        print(f" {rank:>3}  | {icon} {status:<4} | {lat:>4}ms | {ip}")
-        rank += 1
-
-    print(C.C + "━━━━━━━━━━━━━━━━━━━━━━━━━━\n" + C.W)
-
 def run():
     ip_list = get_ip_list()
     if not ip_list:
@@ -164,15 +135,35 @@ def run():
     t = threading.Thread(target=animate, args=(stop,))
     t.start()
 
+    print(C.C + "\nLIVE DASHBOARD\n━━━━━━━━━━━━━━━━━━━━" + C.W)
+
+    clean = []
+    total = len(ip_list)
+    done = 0
+
     with ThreadPoolExecutor(max_workers=25) as ex:
-        results = list(ex.map(check_ip, ip_list))
+        futures = [ex.submit(check_ip, ip) for ip in ip_list]
+
+        for f in as_completed(futures):
+            ip, lat, status = f.result()
+            done += 1
+
+            icon = "🟢" if status == "OK" else "🔴"
+
+            if status == "OK":
+                clean.append((ip, lat))
+
+            print(f"{icon} {ip:<15} {lat:>5}ms")
+
+            percent = int((done / total) * 100)
+            sys.stdout.write(C.Y + f"\rProgress: {percent}% ({done}/{total})" + C.W)
+            sys.stdout.flush()
 
     stop.set()
     t.join()
 
-    print_table(results)
+    print("\n━━━━━━━━━━━━━━━━━━━━")
 
-    clean = [(ip, lat) for ip, lat, st in results if st == "OK"]
     clean.sort(key=lambda x: x[1])
 
     out = get_save_path()
