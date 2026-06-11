@@ -26,77 +26,7 @@ ips = [
     "80.191.243.226",
     "185.88.178.196",
     "81.91.145.2",
-    "185.200.232.49",
-    "23.202.138.125",
-    "185.255.89.101",
-    "62.3.41.131",
-    "185.13.230.155",
-    "37.255.243.44",
-    "194.5.205.51",
-    "5.160.68.233",
-    "178.173.190.222",
-    "85.133.193.54",
-    "185.8.175.249",
-    "185.50.37.52",
-    "92.123.106.90",
-    "92.123.102.160",
-    "104.103.72.80",
-    "96.16.248.159",
-    "104.89.170.140",
-    "184.86.103.158",
-    "72.246.28.215",
-    "23.73.2.75",
-    "184.51.133.123",
-    "88.221.168.204",
-    "88.221.169.205",
-    "96.16.122.137",
-    "23.72.248.210",
-    "2.18.190.27",
-    "23.58.223.224",
-    "23.58.223.171",
-    "184.24.77.25",
-    "96.16.249.11",
-    "2.23.154.99",
-    "96.16.249.12",
-    "23.55.161.38",
-    "95.101.137.34",
-    "23.58.223.225",
-    "185.208.174.167",
-    "185.208.175.228",
-    "2.23.170.80",
-    "95.101.35.74",
-    "95.101.35.91",
-    "2.23.168.254",
-    "2.23.168.144",
-    "2.23.168.47",
-    "2.21.2.104",
-    "2.23.168.213",
-    "2.23.168.96",
-    "2.23.168.174",
-    "63.141.252.203",
-    "185.255.91.60",
-    "185.200.232.8",
-    "185.200.232.9",
-    "185.200.232.11",
-    "185.200.232.16",
-    "185.200.232.17",
-    "185.200.232.19",
-    "185.200.232.24",
-    "185.200.232.25",
-    "185.200.232.26",
-    "185.200.232.34",
-    "185.200.232.40",
-    "185.200.232.42",
-    "185.200.232.43",
-    "185.200.232.56",
-    "185.200.232.57",
-    "185.200.232.58",
-    "185.200.232.64",
-    "185.200.232.65",
-    "185.200.232.66",
-    "185.200.232.67",
 ]
-
 
 def load_ips_from_file(filepath):
     with open(filepath, "r") as f:
@@ -106,90 +36,93 @@ def animate(stop_event):
     chars = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
     i = 0
     while not stop_event.is_set():
-        sys.stdout.write(f"\r🔍 Scanning... {chars[i % len(chars)]}")
+        sys.stdout.write(f"\r🔍 Scanning IPs {chars[i % len(chars)]}")
         sys.stdout.flush()
         time.sleep(0.1)
         i += 1
 
 def check_ip(ip, timeout=5):
-    result = {"ip": ip, "status": "unknown", "latency": None}
     try:
         start = time.time()
         requests.get(f"http://{ip}", timeout=timeout)
         latency = round((time.time() - start) * 1000)
-        result["status"] = "✅ Clean"
-        result["latency"] = f"{latency}ms"
-    except requests.exceptions.ConnectionError:
-        result["status"] = "❌ Blocked"
+        return (ip, latency, "OK")
     except requests.exceptions.Timeout:
-        result["status"] = "⏱️ Timeout"
-    except Exception:
-        result["status"] = "⚠️ Error"
-    return result
+        return (ip, 9999, "TIMEOUT")
+    except requests.exceptions.ConnectionError:
+        return (ip, 9999, "BLOCKED")
+    except:
+        return (ip, 9999, "ERROR")
 
 def get_ip_list():
-    print("\n📌 Select Input Mode:")
-    print("1) Default IPs")
+    print("\n1) Default IPs")
     print("2) Load from file")
     print("3) Manual input")
+    c = input("> ").strip()
 
-    choice = input("\n> ").strip()
-
-    if choice == "1":
+    if c == "1":
         return ips
+    elif c == "2":
+        p = input("File path: ").strip()
+        return load_ips_from_file(p) if os.path.exists(p) else ips
+    elif c == "3":
+        return [i.strip() for i in input("IPs: ").split(",") if i.strip()]
+    return ips
 
-    elif choice == "2":
-        path = input("📂 Enter file path: ").strip()
-        if os.path.exists(path):
-            return load_ips_from_file(path)
+def print_table(results):
+    results.sort(key=lambda x: x[1])
+
+    print("\n====================================")
+    print("        FASTEST IP RESULTS")
+    print("====================================")
+    print(" RANK | STATUS   | LATENCY | IP")
+    print("------------------------------------")
+
+    rank = 1
+    for ip, lat, status in results:
+        if status == "OK":
+            tag = "🟢"
+        elif status == "TIMEOUT":
+            tag = "🟡"
         else:
-            print("❌ File not found! Using default IPs.")
-            return ips
+            tag = "🔴"
 
-    elif choice == "3":
-        raw = input("✍️ Enter IPs (comma separated): ")
-        return [ip.strip() for ip in raw.split(",") if ip.strip()]
+        print(f" {rank:>4} | {tag} {status:<6} | {lat:>6}ms | {ip}")
+        rank += 1
 
-    else:
-        print("⚠️ Invalid choice, using default IPs.")
-        return ips
+    print("====================================\n")
 
 def main():
-    output_path = "/storage/emulated/0/Download/clean_ips.txt"
-
     ip_list = get_ip_list()
-    print(f"\n📋 Loaded {len(ip_list)} IPs\n")
+    print(f"\nLoaded {len(ip_list)} IPs\n")
 
-    stop_event = threading.Event()
-    t = threading.Thread(target=animate, args=(stop_event,))
+    stop = threading.Event()
+    t = threading.Thread(target=animate, args=(stop,))
     t.start()
 
-    with ThreadPoolExecutor(max_workers=20) as executor:
-        results = list(executor.map(check_ip, ip_list))
+    with ThreadPoolExecutor(max_workers=25) as ex:
+        results = list(ex.map(check_ip, ip_list))
 
-    stop_event.set()
+    stop.set()
     t.join()
-    sys.stdout.write("\r" + " " * 40 + "\r")
+    sys.stdout.write("\r" + " " * 50 + "\r")
 
-    clean_ips = []
+    print_table(results)
 
-    for r in results:
-        print(f"{r['status']} | {r['ip']} | {r.get('latency', '-')}")
-        if "Clean" in r["status"]:
-            clean_ips.append(r["ip"])
+    clean = [r for r in results if r[2] == "OK"]
+    clean.sort(key=lambda x: x[1])
 
-    print(f"\n✅ Clean IPs: {len(clean_ips)}")
-
+    out = "/storage/emulated/0/Download/clean_ips.txt"
     try:
-        with open(output_path, "w") as f:
-            f.write("\n".join(clean_ips))
-        print(f"💾 Saved to Downloads/clean_ips.txt")
-    except Exception:
-        fallback = "clean_ips.txt"
-        with open(fallback, "w") as f:
-            f.write("\n".join(clean_ips))
-        print(f"💾 Saved locally as clean_ips.txt")
-
+        with open(out, "w") as f:
+            for ip, lat, _ in clean:
+                f.write(f"{ip} | {lat}ms\n")
+        print(f"Saved -> {out}")
+    except:
+        with open("clean_ips.txt", "w") as f:
+            for ip, lat, _ in clean:
+                f.write(f"{ip} | {lat}ms\n")
+        print("Saved -> local file")
 
 if __name__ == "__main__":
     main()
