@@ -173,9 +173,11 @@ clean_ips.txt
 
 Built with focus and chaos by:
 
-**mamad**
+***mamad***
 
-[![Telegram](https://img.shields.io/badge/Telegram-@AKPAC-blue?logo=telegram)](https://t.me/AKPAC)
+**Contact the developer:**
+
+[![Telegram](https://img.shields.io/badge/CONNECT-TELEGRAM-000000?style=for-the-badge&logo=telegram&logoColor=00FFD5)](https://t.me/AKPAC)
 
 ---
 
