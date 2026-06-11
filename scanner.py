@@ -130,6 +130,10 @@ def run():
 
     print(C.B + f"TOTAL TARGETS: {total}\n" + C.W)
 
+    # 💣 FIX PROGRESS CONFLICT
+    sys.stdout.write("\r" + " " * 80 + "\r")
+    print()
+
     print(C.C + "┌─────────┬──────────────┬────────┐")
     print("│ STATUS  │ IP           │ PING   │")
     print("├─────────┼──────────────┼────────┤" + C.W)
@@ -146,6 +150,8 @@ def run():
             percent = int((done / total) * 100)
             sys.stdout.write(C.Y + f"\rProgress: {percent}% ({done}/{total})" + C.W)
             sys.stdout.flush()
+
+    print()
 
     results.sort(key=lambda x: x[1])
 
