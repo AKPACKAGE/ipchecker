@@ -69,15 +69,6 @@ def menu():
     print("║ 4) Exit                   ║")
     print("╚════════════════════════════╝" + C.W)
 
-def animate():
-    chars = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
-    i = 0
-    while True:
-        sys.stdout.write(C.C + f"\r🔍 SCANNING {chars[i % len(chars)]} " + C.W)
-        sys.stdout.flush()
-        time.sleep(0.1)
-        i += 1
-
 def check_ip(ip, timeout=5):
     try:
         start = time.time()
@@ -130,10 +121,8 @@ def run():
     if not ip_list:
         return
 
-    clean = []
     results = []
     total = len(ip_list)
-    done = 0
 
     print(C.C + "\n╔════════════════════════════════════╗")
     print("║        LIVE IP DASHBOARD           ║")
@@ -148,33 +137,40 @@ def run():
     with ThreadPoolExecutor(max_workers=25) as ex:
         futures = [ex.submit(check_ip, ip) for ip in ip_list]
 
+        done = 0
+
         for f in as_completed(futures):
-            ip, lat, status = f.result()
+            results.append(f.result())
             done += 1
 
-            results.append((ip, lat, status))
+            percent = int((done / total) * 100)
+            sys.stdout.write(C.Y + f"\rProgress: {percent}% ({done}/{total})" + C.W)
+            sys.stdout.flush()
 
-            if status == "OK":
-                clean.append((ip, lat))
-                tag = "ONLINE "
-                color = C.G
-            else:
-                tag = "OFFLINE"
-                color = C.R
+    results.sort(key=lambda x: x[1])
 
-            ip_show = ip[:15].ljust(15)
-            ping_show = f"{lat}ms".ljust(6)
+    clean = [(ip, lat) for ip, lat, status in results if status == "OK"]
+    clean.sort(key=lambda x: x[1])
 
-            row = f"{tag} | {ip_show} | {ping_show}"
-            space = 54 - len(row)
-            if space < 0:
-                space = 0
+    for ip, lat, status in results:
+        if status == "OK":
+            tag = "ONLINE "
+            color = C.G
+        else:
+            tag = "OFFLINE"
+            color = C.R
 
-            print(color + "│ " + row + " " * space + "│" + C.W)
+        ip_show = ip[:15].ljust(15)
+        ping_show = f"{lat}ms".ljust(6)
+
+        row = f"{tag} | {ip_show} | {ping_show}"
+        space = 54 - len(row)
+        if space < 0:
+            space = 0
+
+        print(color + "│ " + row + " " * space + "│" + C.W)
 
     print(C.C + "└─────────┴──────────────┴────────┘" + C.W)
-
-    clean.sort(key=lambda x: x[1])
 
     print(C.G + f"\n✔ CLEAN IPS: {len(clean)}" + C.W)
 
