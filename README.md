@@ -45,6 +45,14 @@ Then it ranks results by latency.
 ## 📦 Installation
 
 ```bash
+sudo apt update && sudo apt install python3 python3-pip git -y
+```
+
+```bash
+pip install request
+```
+
+```bash
 git clone https://github.com/AKPACKAGE/ipchecker.git  
 ```
 
@@ -90,20 +98,7 @@ clean_ips.txt
 ## ⚙️ Requirements
 
 - Python 3.x
-- requests
-
-Install:
-
-pip install requests  
-
----
-
-## 📸 UI Preview
-
-- Dark terminal interface  
-- Animated scanning loader  
-- Colored results table  
-- Ranked IP performance list  
+- requests  
 
 ---
 
@@ -144,7 +139,5 @@ Do not use it for unauthorized scanning.
 If you like this project:
 
 - Star the repo  
-- Fork it  
-- Improve it  
-
-Stay fast. Stay clean. ⚡
+- Fork it 
+-    ⚡
