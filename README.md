@@ -177,7 +177,7 @@ Built with focus and chaos by:
 
 **Contact the developer:**
 
-[![Telegram](https://img.shields.io/badge/CONNECT-TELEGRAM-000000?style=for-the-badge&logo=telegram&logoColor=00FFD5)](https://t.me/AKPAC)
+[![Telegram](https://img.shields.io/badge/AKPAC-TELEGRAM-000000?style=for-the-badge&logo=telegram&logoColor=00FFD5)](https://t.me/AKPAC)
 
 ---
 
