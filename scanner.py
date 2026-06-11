@@ -135,11 +135,19 @@ def run():
     t = threading.Thread(target=animate, args=(stop,))
     t.start()
 
-    print(C.C + "\nLIVE DASHBOARD\n━━━━━━━━━━━━━━━━━━━━" + C.W)
-
     clean = []
     total = len(ip_list)
     done = 0
+
+    print(C.C + "\n╔════════════════════════════════════╗")
+    print("║        LIVE IP DASHBOARD           ║")
+    print("╚════════════════════════════════════╝" + C.W)
+
+    print(C.B + f"TOTAL TARGETS: {total}\n" + C.W)
+
+    print(C.C + "┌─────────┬──────────────┬────────┐")
+    print("│ STATUS  │ IP           │ PING   │")
+    print("├─────────┼──────────────┼────────┤" + C.W)
 
     with ThreadPoolExecutor(max_workers=25) as ex:
         futures = [ex.submit(check_ip, ip) for ip in ip_list]
@@ -148,12 +156,16 @@ def run():
             ip, lat, status = f.result()
             done += 1
 
-            icon = "🟢" if status == "OK" else "🔴"
-
             if status == "OK":
                 clean.append((ip, lat))
+                icon = C.G + "ONLINE  " + C.W
+            else:
+                icon = C.R + "OFFLINE " + C.W
 
-            print(f"{icon} {ip:<15} {lat:>5}ms")
+            ip_fixed = ip.ljust(12)
+            ping_fixed = f"{lat}ms".ljust(6)
+
+            print(f"│ {icon} │ {ip_fixed} │ {ping_fixed} │")
 
             percent = int((done / total) * 100)
             sys.stdout.write(C.Y + f"\rProgress: {percent}% ({done}/{total})" + C.W)
@@ -162,9 +174,11 @@ def run():
     stop.set()
     t.join()
 
-    print("\n━━━━━━━━━━━━━━━━━━━━")
+    print(C.C + "\n└─────────┴──────────────┴────────┘" + C.W)
 
     clean.sort(key=lambda x: x[1])
+
+    print(C.G + f"\n✔ CLEAN IPS FOUND: {len(clean)}" + C.W)
 
     out = get_save_path()
 
