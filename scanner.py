@@ -3,7 +3,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import os
 import sys
-import threading
 import platform
 
 class C:
@@ -70,10 +69,10 @@ def menu():
     print("║ 4) Exit                   ║")
     print("╚════════════════════════════╝" + C.W)
 
-def animate(stop_event):
+def animate():
     chars = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
     i = 0
-    while not stop_event.is_set():
+    while True:
         sys.stdout.write(C.C + f"\r🔍 SCANNING {chars[i % len(chars)]} " + C.W)
         sys.stdout.flush()
         time.sleep(0.1)
@@ -110,14 +109,14 @@ def get_ip_list():
         path = input("FILE PATH > ").strip()
         if os.path.exists(path):
             data = [i.strip() for i in open(path).readlines() if i.strip()]
-            print(C.G + f"✔ FILE LOADED ({len(data)} IPs)\n" + C.W)
+            print(C.G + f"✔ FILE LOADED ({len(data)})\n" + C.W)
             return data
         print(C.R + "❌ FILE NOT FOUND\n" + C.W)
         return []
 
     elif c == "3":
         data = [i.strip() for i in input("IPS > ").split(",") if i.strip()]
-        print(C.G + f"✔ MANUAL INPUT LOADED ({len(data)} IPs)\n" + C.W)
+        print(C.G + f"✔ MANUAL INPUT LOADED ({len(data)})\n" + C.W)
         return data
 
     elif c == "4":
@@ -131,40 +130,29 @@ def run():
     if not ip_list:
         return
 
-    stop = threading.Event()
-    t = threading.Thread(target=animate, args=(stop,))
-    t.start()
-
     clean = []
+    results = []
     total = len(ip_list)
+    done = 0
 
-    width = 54
+    print(C.C + "\n╔════════════════════════════════════╗")
+    print("║        LIVE IP DASHBOARD           ║")
+    print("╚════════════════════════════════════╝" + C.W)
 
-    def line():
-        print(C.C + "┌" + "─" * (width - 2) + "┐" + C.W)
+    print(C.B + f"TOTAL TARGETS: {total}\n" + C.W)
 
-    def mid(text):
-        text = text[:width - 4]
-        space = width - 2 - len(text)
-        print("│ " + text + " " * (space - 1) + "│")
-
-    def split():
-        print("├" + "─" * (width - 2) + "┤")
-
-    line()
-    mid(" LIVE IP DASHBOARD ".center(width - 4))
-    line()
-    mid(f"TOTAL TARGETS: {total}")
-    split()
+    print(C.C + "┌─────────┬──────────────┬────────┐")
+    print("│ STATUS  │ IP           │ PING   │")
+    print("├─────────┼──────────────┼────────┤" + C.W)
 
     with ThreadPoolExecutor(max_workers=25) as ex:
         futures = [ex.submit(check_ip, ip) for ip in ip_list]
 
-        done = 0
-
         for f in as_completed(futures):
             ip, lat, status = f.result()
             done += 1
+
+            results.append((ip, lat, status))
 
             if status == "OK":
                 clean.append((ip, lat))
@@ -174,21 +162,21 @@ def run():
                 tag = "OFFLINE"
                 color = C.R
 
-            ip_show = ip[:15]
-            ping_show = f"{lat}ms"
+            ip_show = ip[:15].ljust(15)
+            ping_show = f"{lat}ms".ljust(6)
 
             row = f"{tag} | {ip_show} | {ping_show}"
-            row = row[:width - 4]
+            space = 54 - len(row)
+            if space < 0:
+                space = 0
 
-            space = width - 2 - len(row)
-            print(color + "│ " + row + " " * (space - 1) + "│" + C.W)
+            print(color + "│ " + row + " " * space + "│" + C.W)
 
-    split()
+    print(C.C + "└─────────┴──────────────┴────────┘" + C.W)
 
     clean.sort(key=lambda x: x[1])
 
-    mid(f"CLEAN IPs: {len(clean)}")
-    line()
+    print(C.G + f"\n✔ CLEAN IPS: {len(clean)}" + C.W)
 
     out = get_save_path()
 
@@ -196,22 +184,20 @@ def run():
         with open(out, "w") as f:
             for ip, lat in clean:
                 f.write(f"{ip} | {lat}ms\n")
-        print(C.G + f"✔ SAVED: {out}" + C.W)
+        print(C.G + f"💾 SAVED: {out}" + C.W)
     except:
         with open("clean_ips.txt", "w") as f:
             for ip, lat in clean:
                 f.write(f"{ip} | {lat}ms\n")
-        print(C.Y + "✔ SAVED LOCALLY" + C.W)
-
-    stop.set()
-    t.join()
+        print(C.Y + "💾 SAVED LOCALLY" + C.W)
 
 def main():
     startup_animation()
     banner()
+
     while True:
         run()
-        input(C.Y + "\nPRESS ENTER TO RETURN MENU..." + C.W)
+        input(C.Y + "\nPRESS ENTER TO CONTINUE..." + C.W)
 
 if __name__ == "__main__":
     main()
