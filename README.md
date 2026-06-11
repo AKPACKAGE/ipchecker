@@ -42,6 +42,15 @@ Then it ranks results by latency.
 
 ---
 
+## ⚙️ Requirements
+
+- Python
+- python3
+- requests
+- git
+
+---
+
 ## 📦 Installation
 
 ```bash
@@ -88,17 +97,17 @@ When running the tool, you can choose:
 
 Clean IPs are automatically saved to:
 
-/storage/emulated/0/Download/clean_ips.txt  
+### 📱 Android (Termux)
+/storage/emulated/0/Download/clean_ips.txt
+
+### 🪟 Windows
+C:\Users\<USERNAME>\Desktop\clean_ips.txt
+
+### 🐧 Linux
+/home/<username>/clean_ips.txt  
 
 Fallback:  
 clean_ips.txt  
-
----
-
-## ⚙️ Requirements
-
-- Python 3.x
-- requests  
 
 ---
 
