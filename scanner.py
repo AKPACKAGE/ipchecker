@@ -22,6 +22,25 @@ ips = [
     "2.19.205.33",
 ]
 
+def startup_animation():
+    steps = [
+        "Initializing system",
+        "Loading modules",
+        "Preparing scanner engine",
+        "Syncing network interface",
+        "Starting IP Checker"
+    ]
+
+    chars = ["|", "/", "-", "\\"]
+    for step in steps:
+        for i in range(8):
+            sys.stdout.write(f"\r{step} {chars[i % 4]}")
+            sys.stdout.flush()
+            time.sleep(0.1)
+        print(f"\r{step} ✔")
+    print("\n")
+    time.sleep(0.5)
+
 def banner():
     print(C.C + C.BOLD)
     print("""
@@ -148,6 +167,8 @@ def run():
         print(C.Y + "💾 SAVED LOCALLY" + C.W)
 
 def main():
+    startup_animation()
+    banner()
     while True:
         run()
         input(C.Y + "\nPRESS ENTER TO RETURN MENU..." + C.W)
