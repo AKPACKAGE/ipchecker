@@ -2,7 +2,7 @@
 
 A fast, multi-threaded IP scanning tool built for speed, simplicity, and clean results.
 
-Powered by **mamad eini**
+Powered by **@AKPAC**
 
 ---
 
@@ -173,7 +173,9 @@ clean_ips.txt
 
 Built with focus and chaos by:
 
-mamad eini  
+**mamad**
+
+[![Telegram](https://img.shields.io/badge/Telegram-@AKPAC-blue?logo=telegram)](https://t.me/AKPAC)
 
 ---
 
