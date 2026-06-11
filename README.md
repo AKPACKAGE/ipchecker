@@ -1,99 +1,150 @@
-# IP Checker
+# ⚡ IP CHECKER v2.0
 
-A lightweight Python tool for checking IP reachability and response latency using multithreading.
+A fast, multi-threaded IP scanning tool built for speed, simplicity, and clean results.
 
-It scans a list of IPs, detects their status, and saves reachable ones automatically.
-
----
-
-## Features
-
-- Fast multithreaded scanning (ThreadPoolExecutor)
-- IP status detection (Clean / Blocked / Timeout)
-- Latency measurement in milliseconds
-- Supports default IPs, file input, and manual input
-- Simple CLI interface
-- Auto-save results
+Powered by **mamad eini**
 
 ---
 
-## How it works
+## 🚀 Overview
 
-The tool sends HTTP requests to each IP and measures response time. Based on the response, it classifies IPs as:
+IP CHECKER is a lightweight Python tool that scans a list of IP addresses, checks their availability, measures latency, and exports clean results automatically.
 
-- Clean (reachable)
-- Blocked (connection error)
-- Timeout
-- Error
+Designed for:
+- Network testing
+- IP validation
+- Fast bulk scanning
+- Learning multithreading in Python
 
 ---
 
-## Installation
+## ✨ Features
 
-## 1. Clone the repository
+- ⚡ Multi-threaded scanning (fast performance)
+- 📡 Real-time scanning
+- 🟢 Clean vs 🔴 Blocked detection
+- 📊 Latency measurement (ms)
+- 📁 Load IPs from file
+- ⌨️ Manual IP input mode
+- 💾 Auto-save clean IPs to file
+
+---
+
+## 🧠 How It Works
+
+The tool sends HTTP requests to each IP address and evaluates:
+
+- Response success → Clean IP ✅
+- Connection failure → Blocked IP ❌
+- Timeout → Slow or unstable IP ⚠️
+
+Then it ranks results by latency.
+
+---
+
+## 📦 Installation
+
 ```bash
-git clone https://github.com/AKPACKAGE/ipchecker.git
+git clone https://github.com/AKPACKAGE/ipchecker.git  
 ```
 
-## 2. Enter the project directory
 ```bash
 cd ipchecker
 ```
 
-## 3. Install dependencies
 ```bash
-pip install requests
+pip install -r requirements.txt  
 ```
 
-## Usage
+---
+
+## ▶️ Usage
 
 ```bash
-python scanner.py
+python scanner.py  
 ```
 
 ---
 
-## Input Modes
+## 📂 Input Options
 
-When you run the script, you can choose:
+When running the tool, you can choose:
 
-1. Default IPs (built-in list)
-2. Load IPs from a file
-3. Manual input (comma-separated)
-
----
-
-## Output Example
-
-```text
-✅ Clean | 1.1.1.1 | 34ms
-❌ Blocked | 8.8.8.8 | -
-⏱️ Timeout | 4.4.4.4 | -
-```
+1. Default built-in IP list  
+2. Load IPs from a file  
+3. Manual IP input  
 
 ---
 
-## Saved Results
+## 💾 Output
 
-Clean IPs are saved to:
+Clean IPs are automatically saved to:
 
-/storage/emulated/0/Download/clean_ips.txt
+/storage/emulated/0/Download/clean_ips.txt  
 
-If not accessible:
-
-clean_ips.txt (project directory)
-
----
-
-## Requirements
-
-requests
+Fallback:  
+clean_ips.txt  
 
 ---
 
-## Notes
+## ⚙️ Requirements
 
-- Built for Termux and Python environments
-- Uses up to 20 concurrent workers for faster scanning
-- Lightweight and easy to modify
-```
+- Python 3.x
+- requests
+
+Install:
+
+pip install requests  
+
+---
+
+## 📸 UI Preview
+
+- Dark terminal interface  
+- Animated scanning loader  
+- Colored results table  
+- Ranked IP performance list  
+
+---
+
+## 🧩 Tech Stack
+
+- Python 🐍  
+- Requests  
+- ThreadPoolExecutor  
+- ANSI Terminal UI  
+
+---
+
+## 🧠 Notes
+
+- Optimized for Android (Termux)  
+- Works on Linux & Windows  
+- Best performance with stable internet connection  
+
+---
+
+## 👤 Author
+
+Built with focus and chaos by:
+
+mamad eini  
+
+---
+
+## ⚠️ Disclaimer
+
+This tool is for educational and testing purposes only.  
+Do not use it for unauthorized scanning.
+
+---
+
+## ⭐ Support
+
+If you like this project:
+
+- Star the repo  
+- Fork it  
+- Improve it  
+
+Stay fast. Stay clean. ⚡
