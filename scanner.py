@@ -8,7 +8,6 @@ import threading
 ips = [
     "1.1.1.1",
     "8.8.8.8",
-    "",
 ]
 
 def load_ips_from_file(filepath):
@@ -28,7 +27,7 @@ def check_ip(ip, timeout=5):
     result = {"ip": ip, "status": "unknown", "latency": None}
     try:
         start = time.time()
-        response = requests.get(f"http://{ip}", timeout=timeout)
+        requests.get(f"http://{ip}", timeout=timeout)
         latency = round((time.time() - start) * 1000)
         result["status"] = "✅ Clean"
         result["latency"] = f"{latency}ms"
@@ -40,28 +39,51 @@ def check_ip(ip, timeout=5):
         result["status"] = "⚠️ Error"
     return result
 
+def get_ip_list():
+    print("\n📌 Select Input Mode:")
+    print("1) Default IPs")
+    print("2) Load from file")
+    print("3) Manual input")
+
+    choice = input("\n> ").strip()
+
+    if choice == "1":
+        return ips
+
+    elif choice == "2":
+        path = input("📂 Enter file path: ").strip()
+        if os.path.exists(path):
+            return load_ips_from_file(path)
+        else:
+            print("❌ File not found! Using default IPs.")
+            return ips
+
+    elif choice == "3":
+        raw = input("✍️ Enter IPs (comma separated): ")
+        return [ip.strip() for ip in raw.split(",") if ip.strip()]
+
+    else:
+        print("⚠️ Invalid choice, using default IPs.")
+        return ips
+
 def main():
-    file_path = ""
     output_path = "/storage/emulated/0/Download/clean_ips.txt"
 
-    if file_path and os.path.exists(file_path):
-        ip_list = load_ips_from_file(file_path)
-        print(f"📂 Loaded {len(ip_list)} IPs from file\n")
-    else:
-        ip_list = ips
-        print(f"📋 Using default IP list\n")
+    ip_list = get_ip_list()
+    print(f"\n📋 Loaded {len(ip_list)} IPs\n")
 
     stop_event = threading.Event()
     t = threading.Thread(target=animate, args=(stop_event,))
     t.start()
 
-    clean_ips = []
     with ThreadPoolExecutor(max_workers=20) as executor:
         results = list(executor.map(check_ip, ip_list))
 
     stop_event.set()
     t.join()
-    sys.stdout.write("\r" + " " * 30 + "\r")
+    sys.stdout.write("\r" + " " * 40 + "\r")
+
+    clean_ips = []
 
     for r in results:
         print(f"{r['status']} | {r['ip']} | {r.get('latency', '-')}")
@@ -75,10 +97,11 @@ def main():
             f.write("\n".join(clean_ips))
         print(f"💾 Saved to Downloads/clean_ips.txt")
     except Exception:
-        fallback = "/data/data/com.termux/files/home/clean_ips.txt"
+        fallback = "clean_ips.txt"
         with open(fallback, "w") as f:
             f.write("\n".join(clean_ips))
-        print(f"💾 Saved to home/clean_ips.txt")
+        print(f"💾 Saved locally as clean_ips.txt")
+
 
 if __name__ == "__main__":
     main()
