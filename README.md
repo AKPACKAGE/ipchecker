@@ -44,7 +44,6 @@ Then it ranks results by latency.
 
 ## ⚙️ Requirements
 
-- Python
 - python3
 - requests
 - git
@@ -54,11 +53,15 @@ Then it ranks results by latency.
 ## 📦 Installation
 
 ```bash
-sudo apt update && sudo apt install python3 python3-pip git -y
+apt update && apt upgrade -y
 ```
 
 ```bash
-pip install request
+sudo apt install python3 -y
+```
+
+```bash
+sudo apt install git -y
 ```
 
 ```bash
@@ -67,6 +70,10 @@ git clone https://github.com/AKPACKAGE/ipchecker.git
 
 ```bash
 cd ipchecker
+```
+
+```bash
+pip install request
 ```
 
 ```bash
