@@ -30,13 +30,20 @@ The tool sends HTTP requests to each IP and measures response time. Based on the
 
 ## Installation
 
+## 1. Clone the repository
 ```bash
 git clone https://github.com/AKPACKAGE/ipchecker.git
-cd ipchecker
-pip install requests
 ```
 
----
+## 2. Enter the project directory
+```bash
+cd ipchecker
+```
+
+## 3. Install dependencies
+```bash
+pip install requests
+```
 
 ## Usage
 
