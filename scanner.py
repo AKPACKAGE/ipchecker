@@ -23,23 +23,45 @@ ips = [
 ]
 
 def startup_animation():
+    import sys, time
+
     steps = [
-        "Initializing system",
-        "Loading modules",
-        "Preparing scanner engine",
-        "Syncing network interface",
-        "Starting IP Checker"
+        "booting core system",
+        "loading encryption layer",
+        "initializing network stack",
+        "spawning scan engine",
+        "syncing modules"
     ]
 
-    chars = ["|", "/", "-", "\\"]
+    bar_len = 22
+
     for step in steps:
-        for i in range(8):
-            sys.stdout.write(f"\r{step} {chars[i % 4]}")
+        for i in range(bar_len + 1):
+            filled = "█" * i
+            empty = "░" * (bar_len - i)
+            percent = int((i / bar_len) * 100)
+
+            sys.stdout.write(
+                f"\r{step} [{filled}{empty}] {percent}%"
+            )
             sys.stdout.flush()
-            time.sleep(0.1)
-        print(f"\r{step} ✔")
+            time.sleep(0.03)
+
+        print(" ✔")
+        time.sleep(0.15)
+
     print("\n")
-    time.sleep(0.5)
+    text = "SYSTEM READY"
+    for i in range(3):
+        sys.stdout.write("\r" + " " * 20)
+        sys.stdout.flush()
+        time.sleep(0.1)
+        sys.stdout.write("\r" + text)
+        sys.stdout.flush()
+        time.sleep(0.2)
+
+    print("\n\n")
+    time.sleep(0.3)
 
 def banner():
     print(C.C + C.BOLD)
