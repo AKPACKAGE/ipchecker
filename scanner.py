@@ -22,28 +22,21 @@ ips = [
     "2.19.205.27",
     "2.19.205.105",
     "23.201.248.171",
+    "2.16.10.149",
+    "2.16.2.27",
+    "23.67.129.53",
+    "104.76.220.168",
+    "178.22.122.101",
+    "185.137.25.214",
+    "81.12.72.218",
+    "185.142.158.162",
+    "185.141.106.238",
+    "5.144.129.174",
+    "109.72.197.1",
+    "80.191.243.226",
+    "185.88.178.196",
+    "81.91.145.2",
 ]
-
-def boot_animation():
-    frames = [
-        "[■□□□□□□□□□] Booting system...",
-        "[■■□□□□□□□□] Loading modules...",
-        "[■■■□□□□□□□] Initializing scanner...",
-        "[■■■■□□□□□□] Connecting network...",
-        "[■■■■■□□□□□] Preparing UI...",
-        "[■■■■■■□□□□] Optimizing engine...",
-        "[■■■■■■■□□□] Starting services...",
-        "[■■■■■■■■□□] Almost ready...",
-        "[■■■■■■■■■□] Final check...",
-        "[■■■■■■■■■■] READY"
-    ]
-
-    for f in frames:
-        sys.stdout.write("\r" + C.C + f)
-        sys.stdout.flush()
-        time.sleep(0.25)
-
-    print("\n")
 
 def banner():
     print(C.C + C.BOLD)
@@ -56,7 +49,7 @@ def banner():
 ╚═╝╚═╝          ╚═════╝ ╚═╝          ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 """)
     print(C.G + "        IP CHECKER v2.0")
-    print(C.Y + "     powered by mamad eini\n" + C.W)
+    print(C.Y + "        powered by mamad eini\n" + C.W)
 
 def menu():
     print(C.C + "╔════════════════════════════╗")
@@ -85,29 +78,38 @@ def check_ip(ip, timeout=5):
         return (ip, 9999, "BAD")
 
 def get_ip_list():
+    banner()
     menu()
-    c = input(C.Y + "\nSELECT > " + C.W)
+
+    c = input(C.Y + "\nSELECT > " + C.W).strip()
 
     if c == "1":
+        print(C.G + "✔ Default IPs loaded\n" + C.W)
         return ips
 
     elif c == "2":
         path = input("FILE PATH > ").strip()
 
         if os.path.exists(path):
-            return [i.strip() for i in open(path).readlines() if i.strip()]
-
-        print(C.R + "FILE NOT FOUND\n" + C.W)
-        return []
+            data = [i.strip() for i in open(path).readlines() if i.strip()]
+            print(C.G + f"✔ FILE LOADED ({len(data)} IPs)\n" + C.W)
+            return data
+        else:
+            print(C.R + "❌ FILE NOT FOUND\n" + C.W)
+            return []
 
     elif c == "3":
-        return [i.strip() for i in input("IPS > ").split(",") if i.strip()]
+        data = [i.strip() for i in input("IPS > ").split(",") if i.strip()]
+        print(C.G + f"✔ MANUAL INPUT LOADED ({len(data)} IPs)\n" + C.W)
+        return data
 
     elif c == "4":
         print(C.R + "EXITING..." + C.W)
         exit()
 
-    return []
+    else:
+        print(C.R + "INVALID OPTION\n" + C.W)
+        return []
 
 def print_table(results):
     results.sort(key=lambda x: x[1])
@@ -129,6 +131,8 @@ def run():
     if not ip_list:
         return
 
+    print(C.C + f"\n📡 TARGETS LOADED: {len(ip_list)}\n" + C.W)
+
     stop = threading.Event()
     t = threading.Thread(target=animate, args=(stop,))
     t.start()
@@ -139,13 +143,27 @@ def run():
     stop.set()
     t.join()
 
+    sys.stdout.write("\r" + " " * 60 + "\r")
+
     print_table(results)
 
-def main():
-    os.system("clear")
-    boot_animation()
-    banner()
+    clean = [(ip, lat) for ip, lat, st in results if st == "OK"]
+    clean.sort(key=lambda x: x[1])
 
+    out = "/storage/emulated/0/Download/clean_ips.txt"
+
+    try:
+        with open(out, "w") as f:
+            for ip, lat in clean:
+                f.write(f"{ip} | {lat}ms\n")
+        print(C.G + f"💾 SAVED {len(clean)} CLEAN IPS -> DOWNLOADS\n" + C.W)
+    except:
+        with open("clean_ips.txt", "w") as f:
+            for ip, lat in clean:
+                f.write(f"{ip} | {lat}ms\n")
+        print(C.Y + "💾 SAVED LOCALLY\n" + C.W)
+
+def main():
     while True:
         run()
         input(C.Y + "\nPRESS ENTER TO RETURN MENU..." + C.W)
