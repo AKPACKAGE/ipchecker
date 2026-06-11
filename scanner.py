@@ -137,20 +137,30 @@ def run():
 
     clean = []
     total = len(ip_list)
-    done = 0
 
-    print(C.C + "\n╔════════════════════════════════════╗")
-    print("║        LIVE IP DASHBOARD           ║")
-    print("╚════════════════════════════════════╝" + C.W)
+    width = 54
 
-    print(C.B + f"TOTAL TARGETS: {total}\n" + C.W)
+    def line():
+        print(C.C + "┌" + "─" * (width - 2) + "┐" + C.W)
 
-    print(C.C + "┌─────────┬──────────────┬────────┐")
-    print("│ STATUS  │ IP           │ PING   │")
-    print("├─────────┼──────────────┼────────┤" + C.W)
+    def mid(text):
+        text = text[:width - 4]
+        space = width - 2 - len(text)
+        print("│ " + text + " " * (space - 1) + "│")
+
+    def split():
+        print("├" + "─" * (width - 2) + "┤")
+
+    line()
+    mid(" LIVE IP DASHBOARD ".center(width - 4))
+    line()
+    mid(f"TOTAL TARGETS: {total}")
+    split()
 
     with ThreadPoolExecutor(max_workers=25) as ex:
         futures = [ex.submit(check_ip, ip) for ip in ip_list]
+
+        done = 0
 
         for f in as_completed(futures):
             ip, lat, status = f.result()
@@ -158,27 +168,27 @@ def run():
 
             if status == "OK":
                 clean.append((ip, lat))
-                icon = C.G + "ONLINE  " + C.W
+                tag = "ONLINE "
+                color = C.G
             else:
-                icon = C.R + "OFFLINE " + C.W
+                tag = "OFFLINE"
+                color = C.R
 
-            ip_fixed = ip.ljust(12)
-            ping_fixed = f"{lat}ms".ljust(6)
+            ip_show = ip[:15]
+            ping_show = f"{lat}ms"
 
-            print(f"│ {icon} │ {ip_fixed} │ {ping_fixed} │")
+            row = f"{tag} | {ip_show} | {ping_show}"
+            row = row[:width - 4]
 
-            percent = int((done / total) * 100)
-            sys.stdout.write(C.Y + f"\rProgress: {percent}% ({done}/{total})" + C.W)
-            sys.stdout.flush()
+            space = width - 2 - len(row)
+            print(color + "│ " + row + " " * (space - 1) + "│" + C.W)
 
-    stop.set()
-    t.join()
-
-    print(C.C + "\n└─────────┴──────────────┴────────┘" + C.W)
+    split()
 
     clean.sort(key=lambda x: x[1])
 
-    print(C.G + f"\n✔ CLEAN IPS FOUND: {len(clean)}" + C.W)
+    mid(f"CLEAN IPs: {len(clean)}")
+    line()
 
     out = get_save_path()
 
@@ -186,12 +196,15 @@ def run():
         with open(out, "w") as f:
             for ip, lat in clean:
                 f.write(f"{ip} | {lat}ms\n")
-        print(C.G + f"💾 SAVED: {out}" + C.W)
+        print(C.G + f"✔ SAVED: {out}" + C.W)
     except:
         with open("clean_ips.txt", "w") as f:
             for ip, lat in clean:
                 f.write(f"{ip} | {lat}ms\n")
-        print(C.Y + "💾 SAVED LOCALLY" + C.W)
+        print(C.Y + "✔ SAVED LOCALLY" + C.W)
+
+    stop.set()
+    t.join()
 
 def main():
     startup_animation()
