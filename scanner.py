@@ -11,21 +11,6 @@ ips = [
     "2.19.205.33",
     "2.19.205.27",
     "2.19.205.105",
-    "23.201.248.171",
-    "2.16.10.149",
-    "2.16.2.27",
-    "23.67.129.53",
-    "104.76.220.168",
-    "178.22.122.101",
-    "185.137.25.214",
-    "81.12.72.218",
-    "185.142.158.162",
-    "185.141.106.238",
-    "5.144.129.174",
-    "109.72.197.1",
-    "80.191.243.226",
-    "185.88.178.196",
-    "81.91.145.2",
 ]
 
 def load_ips_from_file(filepath):
@@ -36,7 +21,7 @@ def animate(stop_event):
     chars = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
     i = 0
     while not stop_event.is_set():
-        sys.stdout.write(f"\r🔍 Scanning IPs {chars[i % len(chars)]}")
+        sys.stdout.write(f"\r🔍 Scanning {chars[i % len(chars)]}")
         sys.stdout.flush()
         time.sleep(0.1)
         i += 1
@@ -54,47 +39,67 @@ def check_ip(ip, timeout=5):
     except:
         return (ip, 9999, "ERROR")
 
-def get_ip_list():
-    print("\n1) Default IPs")
-    print("2) Load from file")
-    print("3) Manual input")
-    c = input("> ").strip()
-
-    if c == "1":
-        return ips
-    elif c == "2":
-        p = input("File path: ").strip()
-        return load_ips_from_file(p) if os.path.exists(p) else ips
-    elif c == "3":
-        return [i.strip() for i in input("IPs: ").split(",") if i.strip()]
-    return ips
-
 def print_table(results):
     results.sort(key=lambda x: x[1])
 
-    print("\n====================================")
-    print("        FASTEST IP RESULTS")
-    print("====================================")
+    print("\n======================================")
+    print("        IP SCANNER RESULTS")
+    print("======================================")
     print(" RANK | STATUS   | LATENCY | IP")
-    print("------------------------------------")
+    print("--------------------------------------")
 
-    rank = 1
-    for ip, lat, status in results:
-        if status == "OK":
-            tag = "🟢"
-        elif status == "TIMEOUT":
-            tag = "🟡"
+    for i, (ip, lat, status) in enumerate(results, 1):
+        icon = "🟢" if status == "OK" else "🟡" if status == "TIMEOUT" else "🔴"
+        print(f" {i:>4} | {icon} {status:<6} | {lat:>6}ms | {ip}")
+
+    print("======================================\n")
+
+def get_ip_list():
+    print("\n╔════════════════════════════╗")
+    print("║        IP SCANNER          ║")
+    print("╠════════════════════════════╣")
+    print("║ 1) Default IPs            ║")
+    print("║ 2) Load from file         ║")
+    print("║ 3) Manual input           ║")
+    print("║ 4) Exit                   ║")
+    print("╚════════════════════════════╝")
+
+    c = input("\nSelect > ").strip()
+
+    if c == "1":
+        return ips
+
+    elif c == "2":
+        path = input("📂 File path: ").strip()
+
+        if os.path.exists(path):
+            loaded = load_ips_from_file(path)
+            print(f"📥 Loaded {len(loaded)} IPs from file")
+            return loaded
         else:
-            tag = "🔴"
+            print("❌ File not found!")
+            return []
 
-        print(f" {rank:>4} | {tag} {status:<6} | {lat:>6}ms | {ip}")
-        rank += 1
+    elif c == "3":
+        raw = input("✍️ Enter IPs (comma separated): ")
+        return [i.strip() for i in raw.split(",") if i.strip()]
 
-    print("====================================\n")
+    elif c == "4":
+        print("👋 Exiting...")
+        exit()
 
-def main():
+    else:
+        print("⚠️ Invalid choice")
+        return []
+
+def run_scanner():
     ip_list = get_ip_list()
-    print(f"\nLoaded {len(ip_list)} IPs\n")
+
+    if not ip_list:
+        print("⚠️ No IPs loaded\n")
+        return
+
+    print(f"\n📋 Loaded {len(ip_list)} IPs\n")
 
     stop = threading.Event()
     t = threading.Thread(target=animate, args=(stop,))
@@ -109,20 +114,26 @@ def main():
 
     print_table(results)
 
-    clean = [r for r in results if r[2] == "OK"]
+    clean = [(ip, lat) for ip, lat, st in results if st == "OK"]
     clean.sort(key=lambda x: x[1])
 
     out = "/storage/emulated/0/Download/clean_ips.txt"
+
     try:
         with open(out, "w") as f:
-            for ip, lat, _ in clean:
+            for ip, lat in clean:
                 f.write(f"{ip} | {lat}ms\n")
-        print(f"Saved -> {out}")
+        print(f"💾 Saved: {out}")
     except:
         with open("clean_ips.txt", "w") as f:
-            for ip, lat, _ in clean:
+            for ip, lat in clean:
                 f.write(f"{ip} | {lat}ms\n")
-        print("Saved -> local file")
+        print("💾 Saved locally")
+
+def main():
+    while True:
+        run_scanner()
+        input("\n🔁 Press Enter to return to menu...")
 
 if __name__ == "__main__":
     main()
