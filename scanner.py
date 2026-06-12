@@ -3,6 +3,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import sys
 import socket
+import platform
+import os
 
 class C:
     C = "\033[96m"
@@ -18,16 +20,25 @@ ips = [
     "185.141.106.238",
 ]
 
+LOG_FILE = "scan_log.txt"
+
+def log(msg):
+    try:
+        with open(LOG_FILE, "a") as f:
+            f.write(msg + "\n")
+    except:
+        pass
+
 def startup_animation():
     steps = [
         "booting core system",
-        "loading modules",
+        "loading security modules",
         "initializing network stack",
         "spawning scan engine",
-        "warming up dashboard"
+        "warming up dashboard engine"
     ]
 
-    bar_len = 24
+    bar_len = 26
 
     for step in steps:
         for i in range(bar_len + 1):
@@ -54,10 +65,10 @@ def banner():
 ██║██║     ╚██████╔╝╚██████╔╝███████╗███████║███████╗██║  ██║
 ╚═╝╚═╝      ╚═════╝  ╚═════╝ ╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝
 """)
-    print(C.G + "        IP CHECKER v2.0")
+    print(C.G + "        IP CHECKER v3.0 ENTERPRISE")
     print(C.Y + "        powered by @AKPAC\n" + C.W)
 
-def check_ip(ip, timeout=5):
+def check_http(ip, timeout=5):
     try:
         start = time.time()
         requests.get(f"http://{ip}", timeout=timeout)
@@ -66,8 +77,17 @@ def check_ip(ip, timeout=5):
     except:
         return (ip, 9999, "BAD")
 
-def check_ports(ip):
-    ports = [80, 443, 22]
+def retry_request(ip, retries=2):
+    for _ in range(retries):
+        try:
+            r = requests.get(f"http://{ip}", timeout=3)
+            return True
+        except:
+            time.sleep(0.2)
+    return False
+
+def tcp_scan(ip):
+    ports = [80, 443, 22, 8080]
     result = {}
 
     for p in ports:
@@ -75,7 +95,9 @@ def check_ports(ip):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(1)
 
-            if s.connect_ex((ip, p)) == 0:
+            code = s.connect_ex((ip, p))
+
+            if code == 0:
                 result[p] = "OPEN"
             else:
                 result[p] = "CLOSED"
@@ -86,22 +108,41 @@ def check_ports(ip):
 
     return result
 
-def geo_ip(ip):
+def geo_lookup(ip):
     try:
         r = requests.get(f"http://ip-api.com/json/{ip}", timeout=2)
         d = r.json()
-        return f"{d.get('country','?')} | {d.get('isp','?')}"
+        return {
+            "country": d.get("country", "?"),
+            "isp": d.get("isp", "?"),
+            "city": d.get("city", "?")
+        }
     except:
-        return "UNKNOWN"
+        return {"country": "?", "isp": "?", "city": "?"}
+
+def classify_status(lat, ports):
+    if lat < 300 and ports.get(80) == "OPEN":
+        return "FAST-ONLINE"
+    elif lat < 1000:
+        return "SLOW-ONLINE"
+    else:
+        return "UNSTABLE"
 
 def enhance(result):
     ip, lat, status = result
-    ports = check_ports(ip)
-    geo = geo_ip(ip)
-    return (ip, lat, status, ports, geo)
+
+    ports = tcp_scan(ip)
+    geo = geo_lookup(ip)
+    retry = retry_request(ip)
+
+    final_status = classify_status(lat, ports)
+
+    log(f"{ip} | {lat}ms | {final_status} | {ports} | {geo} | retry:{retry}")
+
+    return (ip, lat, final_status, ports, geo, retry)
 
 def box(title, lines):
-    width = 75
+    width = 80
     print(C.C + "┌" + "─" * (width - 2) + "┐" + C.W)
     print(C.C + "│ " + title.ljust(width - 4) + " │" + C.W)
     print(C.C + "├" + "─" * (width - 2) + "┤" + C.W)
@@ -114,10 +155,11 @@ def box(title, lines):
 
 def run():
     results = []
-    print(C.Y + "\nSCANNING TARGETS...\n" + C.W)
 
-    with ThreadPoolExecutor(max_workers=25) as ex:
-        futures = [ex.submit(check_ip, ip) for ip in ips]
+    print(C.Y + "\nENTERPRISE SCAN STARTED...\n" + C.W)
+
+    with ThreadPoolExecutor(max_workers=30) as ex:
+        futures = [ex.submit(check_http, ip) for ip in ips]
 
         for f in as_completed(futures):
             results.append(enhance(f.result()))
@@ -127,15 +169,18 @@ def run():
     http_box = []
     tcp_box = []
     geo_box = []
+    status_box = []
 
-    for ip, lat, status, ports, geo in results:
-        http_box.append(f"{status} | {ip} | {lat}ms")
+    for ip, lat, status, ports, geo, retry in results:
+        http_box.append(f"{status} | {ip} | {lat}ms | retry:{retry}")
         tcp_box.append(f"{ip} | 80:{ports[80]} | 443:{ports[443]} | 22:{ports[22]}")
-        geo_box.append(f"{ip} | {geo}")
+        geo_box.append(f"{ip} | {geo['country']} | {geo['isp']}")
+        status_box.append(f"{ip} | CLASS:{status}")
 
-    box("HTTP STATUS", http_box)
-    box("TCP PORT SCAN", tcp_box)
-    box("GEO LOCATION", geo_box)
+    box("HTTP LAYER", http_box)
+    box("TCP SCAN LAYER", tcp_box)
+    box("GEO INTELLIGENCE", geo_box)
+    box("STATUS ENGINE", status_box)
 
 def main():
     startup_animation()
@@ -143,7 +188,7 @@ def main():
 
     while True:
         run()
-        input(C.Y + "\nPRESS ENTER TO RESCAN..." + C.W)
+        input(C.Y + "\nPRESS ENTER TO RESCAN ENTERPRISE..." + C.W)
 
 if __name__ == "__main__":
     main()
