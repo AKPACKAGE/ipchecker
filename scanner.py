@@ -22,7 +22,7 @@ ips = [
     "185.141.106.238",
 ]
 
-# ---------------- LOG SYSTEM ----------------
+# ---------------- LOG ----------------
 LOG_FILE = "scan_log.txt"
 
 def log(msg):
@@ -32,7 +32,7 @@ def log(msg):
     except:
         pass
 
-# ---------------- BOOT ANIMATION ----------------
+# ---------------- ANIMATION ----------------
 def startup_animation():
     steps = [
         "booting core system",
@@ -63,12 +63,12 @@ def startup_animation():
 def banner():
     print(C.C + C.BOLD)
     print("""
-██╗██████╗      ██████╗ ██████╗      ██████╗██╗  ██╗███████╗ ██████╗
-██║██╔══██╗    ██╔═══██╗██╔══██╗    ██╔════╝██║  ██║██╔════╝
-██║██████╔╝    ██║   ██║██████╔╝    ██║     ███████║█████╗
-██║██╔═══╝     ██║   ██║██╔═══╝     ██║     ██╔══██║██╔══╝
-██║██║         ╚██████╔╝██║         ╚██████╗██║  ██║███████╗
-╚═╝╚═╝          ╚═════╝ ╚═╝          ╚═════╝╚═╝  ╚═╝╚══════╝
+██╗██████╗      ██████╗ ██████╗
+██║██╔══██╗    ██╔═══██╗██╔══██╗
+██║██████╔╝    ██║   ██║██████╔╝
+██║██╔═══╝     ██║   ██║██╔═══╝
+██║██║         ╚██████╔╝██║
+╚═╝╚═╝          ╚═════╝ ╚═╝
 """)
     print(C.G + "        IP CHECKER v2.0")
     print(C.Y + "        powered by @AKPAC\n" + C.W)
@@ -82,7 +82,7 @@ def menu():
     print("║ 4) Exit                   ║")
     print("╚════════════════════════════╝" + C.W)
 
-# ---------------- CORE CHECK ----------------
+# ---------------- HTTP CHECK ----------------
 def check_ip(ip, timeout=5):
     try:
         start = time.time()
@@ -92,24 +92,32 @@ def check_ip(ip, timeout=5):
     except:
         return (ip, 9999, "BAD")
 
-# ---------------- NEW FEATURES ----------------
+# ---------------- FIXED TCP SCAN ----------------
 def check_ports(ip):
     ports = [80, 443, 22]
-    open_ports = []
+    result = {}
 
     for p in ports:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(0.5)
-            if s.connect_ex((ip, p)) == 0:
-                open_ports.append(p)
+            s.settimeout(1)
+
+            code = s.connect_ex((ip, p))
+
+            if code == 0:
+                result[p] = "OPEN"
+            else:
+                # تفاوت CLOSED و FILTERED خیلی دقیق نیست، ولی بهتر از قبله
+                result[p] = "CLOSED"
+
             s.close()
+
         except:
-            pass
+            result[p] = "FILTERED"
 
-    return open_ports
+    return result
 
-
+# ---------------- GEO ----------------
 def geo_ip(ip):
     try:
         r = requests.get(f"http://ip-api.com/json/{ip}", timeout=2)
@@ -118,6 +126,7 @@ def geo_ip(ip):
     except:
         return "UNKNOWN"
 
+# ---------------- ENHANCE ----------------
 def enhance(result):
     ip, lat, status = result
 
@@ -170,12 +179,13 @@ def run():
     results = []
     total = len(ip_list)
 
-    print(C.C + "\nLIVE DASHBOARD STARTED\n" + C.W)
+    print(C.C + "\nLIVE DASHBOARD\n" + C.W)
 
     with ThreadPoolExecutor(max_workers=25) as ex:
         futures = [ex.submit(check_ip, ip) for ip in ip_list]
 
         done = 0
+
         for f in as_completed(futures):
             enhanced = enhance(f.result())
             results.append(enhanced)
@@ -197,7 +207,8 @@ def run():
 
     for ip, lat, status, ports, geo in results:
         color = C.G if status == "OK" else C.R
-        print(color + f"{status} | {ip} | {lat}ms | ports:{ports} | {geo}" + C.W)
+
+        print(color + f"{status} | {ip} | {lat}ms | {ports} | {geo}" + C.W)
 
     out = get_save_path()
 
@@ -209,7 +220,7 @@ def run():
     except:
         print(C.R + "SAVE ERROR")
 
-    print(C.C + f"✔ LOG FILE: {LOG_FILE}" + C.W)
+    print(C.C + f"✔ LOG: {LOG_FILE}" + C.W)
 
 # ---------------- MAIN ----------------
 def main():
